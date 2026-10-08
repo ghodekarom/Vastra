@@ -22,7 +22,20 @@ import ProductCard from "@/components/product/ProductCard";
 export default function ProductDetailPage() {
   const params = useParams();
   const slug = params?.slug as string;
-  const product = PRODUCTS.find((p) => p.slug === slug) || PRODUCTS[0];
+  const initialProduct = PRODUCTS.find((p) => p.slug === slug) || PRODUCTS[0];
+  const [product, setProduct] = useState<Product>(initialProduct);
+
+  React.useEffect(() => {
+    import("@/config/site").then(({ siteConfig }) => {
+      if (siteConfig.api.useRemoteApi && slug) {
+        import("@/lib/api/products").then(({ fetchProductBySlug }) => {
+          fetchProductBySlug(slug).then((res) => {
+            if (res) setProduct(res);
+          }).catch((err) => console.warn("Remote PDP sync:", err));
+        });
+      }
+    });
+  }, [slug]);
 
   const { addToCart, isInWishlist, toggleWishlist } = useStore();
 

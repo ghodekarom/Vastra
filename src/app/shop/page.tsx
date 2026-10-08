@@ -6,12 +6,25 @@ import { PRODUCTS, Product } from "@/data/products";
 import ProductCard from "@/components/product/ProductCard";
 
 export default function ShopPage() {
+  const [catalogProducts, setCatalogProducts] = useState<Product[]>(PRODUCTS);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [maxPrice, setMaxPrice] = useState<number>(2999);
   const [sortBy, setSortBy] = useState<string>("featured");
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    import("@/config/site").then(({ siteConfig }) => {
+      if (siteConfig.api.useRemoteApi) {
+        import("@/lib/api/products").then(({ fetchProducts }) => {
+          fetchProducts().then((res) => {
+            if (res && res.length > 0) setCatalogProducts(res);
+          }).catch((err) => console.warn("Remote catalog sync:", err));
+        });
+      }
+    });
+  }, []);
 
   const categories = [
     "Oversized T-Shirts",
@@ -59,7 +72,7 @@ export default function ShopPage() {
   };
 
   const filteredProducts = useMemo(() => {
-    return PRODUCTS.filter((product) => {
+    return catalogProducts.filter((product) => {
       // Category filter
       if (
         selectedCategories.length > 0 &&
@@ -93,7 +106,7 @@ export default function ShopPage() {
       if (sortBy === "newest") return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
       return 0; // featured
     });
-  }, [selectedCategories, selectedColors, selectedSizes, maxPrice, sortBy]);
+  }, [catalogProducts, selectedCategories, selectedColors, selectedSizes, maxPrice, sortBy]);
 
   const activeFilterCount =
     selectedCategories.length +

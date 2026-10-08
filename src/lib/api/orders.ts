@@ -95,3 +95,57 @@ export async function fetchOrderById(orderId: string): Promise<OrderItem | null>
     courierPartner: "Blue Dart Air Express",
   };
 }
+
+export interface TrackingMilestone {
+  title: string;
+  description: string;
+  date: string;
+  completed: boolean;
+  active: boolean;
+}
+
+export interface OrderTrackingInfo {
+  orderNumber: string;
+  status: string;
+  trackingNumber: string;
+  courierPartner: string;
+  estimatedDelivery: string;
+  timeline: TrackingMilestone[];
+}
+
+export async function fetchOrderTracking(orderId: string): Promise<OrderTrackingInfo | null> {
+  if (siteConfig.api.useRemoteApi) {
+    const res = await apiClient<OrderTrackingInfo>(`/orders/${orderId}/tracking`);
+    return res.data;
+  }
+  return null;
+}
+
+export async function cancelRemoteOrder(orderId: string, token?: string): Promise<OrderItem | null> {
+  if (siteConfig.api.useRemoteApi) {
+    const res = await apiClient<OrderItem>(`/orders/${orderId}/cancel`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    return res.data;
+  }
+  return null;
+}
+
+export async function submitReturnRequest(
+  orderId: string,
+  payload: { actionType: string; reason: string; replacementSize?: string }
+): Promise<any> {
+  if (siteConfig.api.useRemoteApi) {
+    const res = await apiClient<any>(`/orders/${orderId}/returns`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  }
+  return {
+    status: "REQUESTED",
+    returnNumber: `RET-${Math.floor(10000 + Math.random() * 90000)}`,
+  };
+}
+

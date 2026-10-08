@@ -6,13 +6,25 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { CheckCircle2, ArrowRight, Package, Truck, MapPin } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
+import { OrderItem } from "@/types";
 
 export default function OrderConfirmationPage() {
   const params = useParams();
   const orderId = params?.orderId as string;
   const { orders } = useStore();
+  const [remoteOrder, setRemoteOrder] = React.useState<OrderItem | null>(null);
 
-  const order = orders.find((o) => o.id === orderId) || orders[0];
+  React.useEffect(() => {
+    if (orderId && !orders.some((o) => o.id === orderId)) {
+      import("@/lib/api/orders").then(({ fetchOrderById }) => {
+        fetchOrderById(orderId).then((res) => {
+          if (res) setRemoteOrder(res);
+        });
+      });
+    }
+  }, [orderId, orders]);
+
+  const order = orders.find((o) => o.id === orderId) || remoteOrder || orders[0];
 
   return (
     <div className="bg-[#F7F4EE] min-h-screen py-12 sm:py-16">

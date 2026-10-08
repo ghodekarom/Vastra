@@ -15,6 +15,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
+import { OrderItem } from "@/types";
+import type { OrderTrackingInfo, TrackingMilestone } from "@/lib/api/orders";
 
 export default function OrderTrackingPage() {
   const params = useParams();
@@ -24,20 +26,46 @@ export default function OrderTrackingPage() {
   const [returnRequested, setReturnRequested] = useState(false);
   const [returnReason, setReturnReason] = useState("Size too large");
   const [showReturnModal, setShowReturnModal] = useState(false);
+  const [remoteOrder, setRemoteOrder] = useState<OrderItem | null>(null);
+  const [trackingData, setTrackingData] = useState<OrderTrackingInfo | null>(null);
 
-  const order = orders.find((o) => o.id === orderId) || orders[0];
+  React.useEffect(() => {
+    if (orderId) {
+      import("@/lib/api/orders").then(({ fetchOrderById, fetchOrderTracking }) => {
+        fetchOrderById(orderId).then((res) => {
+          if (res) setRemoteOrder(res);
+        });
+        fetchOrderTracking(orderId).then((track) => {
+          if (track) setTrackingData(track);
+        });
+      });
+    }
+  }, [orderId]);
 
-  const steps = [
-    { title: "Order Placed", date: "28 Sep, 10:45 AM", completed: true },
-    { title: "Confirmed", date: "28 Sep, 11:20 AM", completed: true },
-    { title: "Processing & Quality Check", date: "29 Sep, 02:15 PM", completed: true },
-    { title: "Shipped via Blue Dart", date: "30 Sep, 09:30 AM", completed: true, active: true },
-    { title: "Out for Delivery", date: "Expected Tomorrow", completed: false },
-    { title: "Delivered", date: "Estimated 02 Oct", completed: false },
+  const order = orders.find((o) => o.id === orderId) || remoteOrder || orders[0];
+
+  const defaultSteps: TrackingMilestone[] = [
+    { title: "Order Placed", description: "Order recorded", date: "28 Sep, 10:45 AM", completed: true, active: false },
+    { title: "Confirmed", description: "Payment verified", date: "28 Sep, 11:20 AM", completed: true, active: false },
+    { title: "Processing & Quality Check", description: "QC passed", date: "29 Sep, 02:15 PM", completed: true, active: false },
+    { title: "Shipped via Blue Dart", description: "In transit", date: "30 Sep, 09:30 AM", completed: true, active: true },
+    { title: "Out for Delivery", description: "Courier out", date: "Expected Tomorrow", completed: false, active: false },
+    { title: "Delivered", description: "Final delivery", date: "Estimated 02 Oct", completed: false, active: false },
   ];
 
-  const handleReturnSubmit = (e: React.FormEvent) => {
+  const steps: TrackingMilestone[] = trackingData?.timeline || defaultSteps;
+
+  const handleReturnSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      const { submitReturnRequest } = await import("@/lib/api/orders");
+      await submitReturnRequest(order?.id || orderId, {
+        actionType: "EXCHANGE",
+        reason: returnReason,
+      });
+    } catch {
+      // Fallback
+    }
     setReturnRequested(true);
     setShowReturnModal(false);
     showToast("Return request submitted. Courier pickup will be scheduled.");

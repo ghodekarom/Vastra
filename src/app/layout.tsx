@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Syne, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
+import { AuthProvider } from "@/context/AuthContext";
 import { StoreProvider } from "@/context/StoreContext";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -52,16 +53,18 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${syne.variable} ${cormorant.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-[#F7F4EE] text-[#111111] selection:bg-black selection:text-white">
-        <StoreProvider>
-          <SmoothScrollProvider>
-            <Header />
-            <main className="flex-1 pt-18 sm:pt-20">{children}</main>
-            <Footer />
-            <CartDrawer />
-            <SearchModal />
-            <Toast />
-          </SmoothScrollProvider>
-        </StoreProvider>
+        <AuthProvider>
+          <StoreProvider>
+            <SmoothScrollProvider>
+              <Header />
+              <main className="flex-1 pt-18 sm:pt-20">{children}</main>
+              <Footer />
+              <CartDrawer />
+              <SearchModal />
+              <Toast />
+            </SmoothScrollProvider>
+          </StoreProvider>
+        </AuthProvider>
       </body>
     </html>
   );

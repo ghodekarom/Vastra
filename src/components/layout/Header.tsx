@@ -3,14 +3,17 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, User, Heart, ShoppingBag, Menu, X } from "lucide-react";
+import { Search, User, Heart, ShoppingBag, Menu, X, LogOut, ShieldCheck } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Header() {
   const pathname = usePathname();
   const { openCart, openSearch, cartCount, wishlist } = useStore();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -114,14 +117,85 @@ export default function Header() {
               </kbd>
             </button>
 
-            {/* Account Icon */}
-            <Link
-              href="/account"
-              aria-label="Account"
-              className="p-2 text-[#111111] hover:opacity-75 transition-opacity"
-            >
-              <User className="h-5 w-5" strokeWidth={1.8} />
-            </Link>
+            {/* Account Icon / User Menu */}
+            <div className="relative">
+              {isAuthenticated ? (
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    aria-label="User Account"
+                    className="flex items-center gap-1.5 p-1 rounded-full hover:bg-black/5 transition-colors cursor-pointer"
+                  >
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#111111] text-white font-bold text-xs font-display">
+                      {user?.fullName?.charAt(0) || "U"}
+                    </div>
+                  </button>
+
+                  {userMenuOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setUserMenuOpen(false)}
+                      />
+                      <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-[#D8D3CA] bg-white p-3 shadow-lg z-50">
+                        <div className="px-3 py-2 border-b border-[#F1EEE7] mb-1">
+                          <strong className="text-xs font-bold text-black block truncate">
+                            {user?.fullName}
+                          </strong>
+                          <span className="text-[10px] text-[#77736D] block truncate">
+                            {user?.email}
+                          </span>
+                          <span className="inline-block mt-1 rounded bg-[#555A46]/10 px-1.5 py-0.5 text-[9px] font-bold text-[#555A46] uppercase">
+                            {isAdmin ? "Master Admin" : "VIP Customer"}
+                          </span>
+                        </div>
+
+                        <Link
+                          href="/account"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-[#111111] hover:bg-[#F7F4EE] transition-colors"
+                        >
+                          <User className="h-3.5 w-3.5 text-[#77736D]" />
+                          <span>My Profile & Orders</span>
+                        </Link>
+
+                        {isAdmin && (
+                          <Link
+                            href="/admin"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-[#555A46] hover:bg-[#555A46]/10 transition-colors"
+                          >
+                            <ShieldCheck className="h-3.5 w-3.5 text-[#555A46]" />
+                            <span>Admin Studio</span>
+                          </Link>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUserMenuOpen(false);
+                            logout();
+                          }}
+                          className="w-full text-left flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors mt-1 cursor-pointer"
+                        >
+                          <LogOut className="h-3.5 w-3.5 text-red-500" />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  aria-label="Sign In"
+                  className="p-2 text-[#111111] hover:opacity-75 transition-opacity"
+                >
+                  <User className="h-5 w-5" strokeWidth={1.8} />
+                </Link>
+              )}
+            </div>
 
             {/* Wishlist Icon */}
             <Link

@@ -9,8 +9,19 @@ export default function AdminAIPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setIsGenerating(true);
+    try {
+      const { generateAiEditorialCopy } = await import("@/lib/api/admin");
+      const result = await generateAiEditorialCopy(selectedProductPrompt);
+      if (result) {
+        setGeneratedCopy(result);
+        setIsGenerating(false);
+        return;
+      }
+    } catch {
+      // Fallback
+    }
     setTimeout(() => {
       setGeneratedCopy(
         `Crafted from 240 GSM organic French terry cotton, the Vintage Sage Oversized Tee fuses brutalist streetwear aesthetics with cloud-soft breathability. Features our signature 2.5-inch dropped shoulder contour, a dense non-sag ribbed collar, and subtle chest typographic embroidery. Pre-shrunk with natural silicone enzymes for an enduring drape that commands attention without effort.`

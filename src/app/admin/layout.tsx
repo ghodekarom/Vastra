@@ -12,7 +12,11 @@ import {
   ArrowLeft,
   Bell,
   Sliders,
+  ShieldAlert,
+  ShieldCheck,
+  UserCheck,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function AdminLayout({
   children,
@@ -20,6 +24,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { user, isAuthenticated, isAdmin, quickLoginAs, logout } = useAuth();
 
   const adminNav = [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -28,6 +33,54 @@ export default function AdminLayout({
     { label: "Inventory Stock", href: "/admin/inventory", icon: Boxes },
     { label: "AI Insights", href: "/admin/ai", icon: Sparkles },
   ];
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-[#111111] text-white flex flex-col justify-center items-center p-6">
+        <div className="max-w-md w-full rounded-3xl border border-white/10 bg-white/5 p-8 sm:p-10 text-center relative overflow-hidden backdrop-blur-md">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 text-red-400 mb-6 border border-red-500/20">
+            <ShieldAlert className="h-8 w-8" />
+          </div>
+
+          <span className="inline-block rounded border border-red-500/30 bg-red-500/10 px-2.5 py-0.5 text-[10px] font-mono tracking-widest text-red-400 uppercase mb-3">
+            RBAC ACCESS RESTRICTED
+          </span>
+
+          <h1 className="text-2xl font-bold font-display text-white mb-2">
+            Master Admin Required
+          </h1>
+          <p className="text-xs text-[#99948D] leading-relaxed mb-6">
+            The VASTRA Admin HQ requires <code className="text-white bg-white/10 px-1 py-0.5 rounded">ROLE_ADMIN</code> clearance. You are currently identified as {isAuthenticated ? `"${user?.fullName}" (${user?.role})` : "Guest"}.
+          </p>
+
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={() => quickLoginAs("admin")}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-white py-3 text-xs font-bold text-black uppercase tracking-wider hover:bg-[#EAE4D9] transition-colors cursor-pointer"
+            >
+              <ShieldCheck className="h-4 w-4" />
+              <span>Elevate to Admin Passport (1-Click)</span>
+            </button>
+
+            <Link
+              href="/login"
+              className="block w-full rounded-xl border border-white/15 bg-white/5 py-3 text-xs font-semibold text-white hover:bg-white/10 transition-colors"
+            >
+              Sign In with Custom Credentials
+            </Link>
+
+            <Link
+              href="/"
+              className="block text-xs text-[#99948D] hover:text-white transition-colors pt-2"
+            >
+              ← Return to Customer Storefront
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F1EEE7] flex flex-col">
@@ -46,15 +99,19 @@ export default function AdminLayout({
             VASTRA ADMIN HQ
           </span>
           <span className="rounded bg-[#555A46] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
-            PROTOTYPE v1.0
+            ROLE_ADMIN
           </span>
         </div>
 
         <div className="flex items-center gap-4 text-xs">
-          <span className="text-[#B8B0A4] hidden sm:inline">Store: India (INR ₹)</span>
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#252525] font-bold text-xs">
-            OP
-          </div>
+          <span className="text-[#B8B0A4] hidden sm:inline">{user?.email}</span>
+          <button
+            type="button"
+            onClick={logout}
+            className="rounded border border-white/20 bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-white/20 transition-colors cursor-pointer"
+          >
+            Sign Out
+          </button>
         </div>
       </header>
 

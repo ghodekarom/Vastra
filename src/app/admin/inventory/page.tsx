@@ -65,6 +65,9 @@ export default function AdminInventoryPage() {
   ]);
 
   const handleRestock = (sku: string) => {
+    import("@/lib/api/admin").then(({ restockSku }) => {
+      restockSku(sku, 50).catch((err) => console.warn("Remote restock sync note:", err));
+    });
     setStockList((prev) =>
       prev.map((item) =>
         item.sku === sku
@@ -72,6 +75,7 @@ export default function AdminInventoryPage() {
           : item
       )
     );
+    showToast(`Restocked 50 units for ${sku}`);
   };
 
   return (

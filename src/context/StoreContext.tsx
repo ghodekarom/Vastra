@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Product, PRODUCTS } from "@/data/products";
+import { siteConfig } from "@/config/site";
 
 import { CartItem, OrderItem } from "@/types";
 
@@ -212,7 +213,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const toggleWishlist = (productId: string) => {
     setWishlist((prev) => {
-      if (prev.includes(productId)) {
+      const willSave = !prev.includes(productId);
+      if (siteConfig.api.useRemoteApi) {
+        import("@/lib/api/wishlist").then(({ toggleRemoteWishlist }) => {
+          toggleRemoteWishlist(productId).catch((err) => console.warn("Remote wishlist sync notice:", err));
+        });
+      }
+      if (!willSave) {
         showToast("Removed from wishlist");
         return prev.filter((id) => id !== productId);
       } else {
@@ -254,8 +261,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   const createOrder = (orderData: Partial<OrderItem>): OrderItem => {
+    const orderId = `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
+    const trackingNumber = `BD-${Math.floor(1000000 + Math.random() * 9000000)}`;
     const newOrder: OrderItem = {
-      id: `ORD-${Math.floor(10000 + Math.random() * 90000)}`,
+      id: orderId,
       date: "Just now",
       status: "PLACED",
       items: [...cart],
@@ -272,9 +281,38 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       shipping: shippingFee,
       total: finalTotal,
       paymentMethod: orderData.paymentMethod || "UPI (Google Pay)",
-      trackingNumber: `DEL-IND-${Math.floor(100000 + Math.random() * 900000)}`,
+      trackingNumber,
       estimatedDelivery: "3-4 Business Days",
     };
+
+    if (siteConfig.api.useRemoteApi) {
+      import("@/lib/api/orders").then(({ createOrder: apiCreateOrder }) => {
+        const paymentMethodUpper = newOrder.paymentMethod.toUpperCase();
+        const normalizedPayment: "UPI" | "CARD" | "NETBANKING" | "COD" =
+          paymentMethodUpper.includes("CARD")
+            ? "CARD"
+            : paymentMethodUpper.includes("COD")
+            ? "COD"
+            : paymentMethodUpper.includes("NET")
+            ? "NETBANKING"
+            : "UPI";
+
+        apiCreateOrder({
+          items: newOrder.items,
+          shippingAddress: newOrder.shippingAddress,
+          shippingMethod: "STANDARD",
+          paymentMethod: normalizedPayment,
+          discountCode: activeCoupon || undefined,
+        }).then((remoteOrder) => {
+          if (remoteOrder) {
+            setOrders((prev) => [remoteOrder, ...prev.filter((o) => o.id !== newOrder.id)]);
+          }
+        }).catch((err) => {
+          console.warn("Remote order placement notice:", err);
+        });
+      });
+    }
+
     setOrders((prev) => [newOrder, ...prev]);
     clearCart();
     return newOrder;
