@@ -34,6 +34,9 @@ export interface OrderItem {
   shipping: number;
   total: number;
   paymentMethod: string;
+  paymentId?: string;
+  razorpayOrderId?: string;
+  paymentStatus?: "PENDING" | "PAID" | "FAILED";
   trackingNumber: string;
   estimatedDelivery: string;
   courierPartner?: string;

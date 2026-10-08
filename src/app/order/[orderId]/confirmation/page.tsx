@@ -62,8 +62,15 @@ export default function OrderConfirmationPage() {
             <div>
               <span className="text-[#77736D] block mb-1">Payment Status</span>
               <strong className="text-[#3F6B4B] text-sm block">
-                Paid via {order?.paymentMethod || "UPI"}
+                {order?.paymentStatus === "PENDING"
+                  ? "Pay on Delivery (COD)"
+                  : `Paid via ${order?.paymentMethod || "Razorpay"}`}
               </strong>
+              {order?.paymentId && (
+                <span className="text-[10px] text-[#77736D] block mt-0.5 font-mono">
+                  Ref: {order.paymentId}
+                </span>
+              )}
             </div>
           </div>
 

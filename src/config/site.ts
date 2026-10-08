@@ -30,4 +30,7 @@ export const siteConfig = {
     useRemoteApi: process.env.NEXT_PUBLIC_USE_REMOTE_API === "true",
     baseUrl: process.env.NEXT_PUBLIC_API_URL || "/api",
   },
+  payments: {
+    razorpayKeyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
+  },
 };

@@ -280,7 +280,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       discount,
       shipping: shippingFee,
       total: finalTotal,
-      paymentMethod: orderData.paymentMethod || "UPI (Google Pay)",
+      paymentMethod: orderData.paymentMethod || "Razorpay Secure Checkout",
+      paymentId: orderData.paymentId,
+      razorpayOrderId: orderData.razorpayOrderId,
+      paymentStatus:
+        orderData.paymentStatus ||
+        (orderData.paymentMethod?.toLowerCase().includes("cod") ? "PENDING" : "PAID"),
       trackingNumber,
       estimatedDelivery: "3-4 Business Days",
     };

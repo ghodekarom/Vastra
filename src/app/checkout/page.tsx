@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ShieldCheck, Truck, CreditCard, Smartphone, Banknote, ArrowRight } from "lucide-react";
+import { Check, ShieldCheck, Truck, CreditCard, Smartphone, Banknote, ArrowRight, Lock } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 
 export default function CheckoutPage() {
@@ -13,7 +13,7 @@ export default function CheckoutPage() {
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [shippingMethod, setShippingMethod] = useState<"standard" | "express">("standard");
-  const [paymentMethod, setPaymentMethod] = useState<"upi" | "card" | "cod">("upi");
+  const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "upi" | "card" | "cod">("razorpay");
   const [upiId, setUpiId] = useState("aarav@okhdfcbank");
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -50,6 +50,20 @@ export default function CheckoutPage() {
     e.preventDefault();
     setIsProcessing(true);
 
+    if (paymentMethod === "razorpay") {
+      const query = new URLSearchParams({
+        name: formData.fullName,
+        phone: formData.phone,
+        street: formData.street,
+        city: formData.city,
+        state: formData.state,
+        pincode: formData.pincode,
+        shipping: shippingMethod,
+      }).toString();
+      router.push(`/payment?${query}`);
+      return;
+    }
+
     setTimeout(() => {
       const order = createOrder({
         shippingAddress: formData,
@@ -59,6 +73,7 @@ export default function CheckoutPage() {
             : paymentMethod === "card"
             ? "Credit Card (Simulated)"
             : "Cash on Delivery",
+        paymentStatus: paymentMethod === "cod" ? "PENDING" : "PAID",
       });
       router.push(`/order/${order.id}/confirmation`);
     }, 1200);
@@ -276,11 +291,50 @@ export default function CheckoutPage() {
 
             {step === 3 && (
               <form onSubmit={handlePlaceOrder} className="space-y-6">
-                <h2 className="text-lg font-bold text-[#111111] font-display">
-                  3. Payment Simulation
-                </h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-[#111111] font-display">
+                    3. Payment Method
+                  </h2>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#3F6B4B]">
+                    <ShieldCheck className="h-3.5 w-3.5" /> Razorpay 256-Bit SSL
+                  </span>
+                </div>
 
                 <div className="space-y-3">
+                  {/* Razorpay Gateway */}
+                  <label
+                    className={`flex flex-col p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                      paymentMethod === "razorpay"
+                        ? "border-black bg-[#FAF9F5] shadow-xs"
+                        : "border-[#D8D3CA] hover:border-black/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="payment"
+                          checked={paymentMethod === "razorpay"}
+                          onChange={() => setPaymentMethod("razorpay")}
+                          className="text-black"
+                        />
+                        <div className="flex items-center gap-2">
+                          <Lock className="h-4 w-4 text-[#111111]" />
+                          <div>
+                            <span className="text-xs font-bold text-[#111111] uppercase tracking-wider block">
+                              Razorpay Standard Gateway
+                            </span>
+                            <span className="text-[11px] text-[#77736D]">
+                              Cards (Visa/Mastercard/RuPay), UPI, 50+ Net Banking & Wallets
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold text-white bg-black px-2 py-0.5 rounded uppercase">
+                        Recommended
+                      </span>
+                    </div>
+                  </label>
                   {/* UPI */}
                   <label
                     className={`flex flex-col p-4 rounded-lg border cursor-pointer transition-all ${
@@ -390,7 +444,11 @@ export default function CheckoutPage() {
                     disabled={isProcessing}
                     className="inline-flex items-center gap-2 rounded bg-black px-8 py-3.5 text-xs font-bold text-white uppercase tracking-wider shadow-lg hover:bg-[#252525] transition-all disabled:opacity-50"
                   >
-                    {isProcessing ? "Authorizing Order..." : `Pay ₹${grandTotal.toLocaleString("en-IN")}`}
+                    {isProcessing
+                      ? "Connecting..."
+                      : paymentMethod === "razorpay"
+                      ? `Proceed to Payment (₹${grandTotal.toLocaleString("en-IN")})`
+                      : `Pay ₹${grandTotal.toLocaleString("en-IN")}`}
                   </button>
                 </div>
               </form>

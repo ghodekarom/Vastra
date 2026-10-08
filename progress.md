@@ -39,9 +39,10 @@ The VASTRA e-commerce experience is fully operational as an end-to-end interacti
 | `/collections` | **Collections** | ✅ Complete | Editorial collection cards (Monolith, Horizon, Heavyweight Essentials, Graphic Syndicate) |
 | `/product/[slug]` | **Product Detail (PDP)** | ✅ Complete | Dynamic slug loader, multi-angle gallery, GSM badge, size selector with size-guide modal, fabric spec accordion, reviews, related products |
 | `/cart` | **Cart** | ✅ Complete | Line item quantity adjustment, price calculation, free shipping threshold meter, coupon promo code apply, subtotal summary |
-| `/checkout` | **Checkout** | ✅ Complete | Multi-step shipping address form, courier selection (Express/Standard), payment method selector (UPI, Cards, NetBanking, COD), order summary |
+| `/checkout` | **Checkout** | ✅ Complete | Multi-step shipping address form, courier selection (Express/Standard), payment gateway selector (Razorpay, UPI, COD), order summary |
+| `/payment` | **Payment Gateway** | ✅ Complete | Dedicated luxury payment screen, Razorpay Checkout SDK integration, direct UPI QR scanner, bank-grade 256-bit SSL, payment verification & retry |
 | `/order/[orderId]` | **Order Details** | ✅ Complete | Order summary, items breakdown, shipping address, status tracking timeline |
-| `/order/[orderId]/confirmation` | **Order Success** | ✅ Complete | Celebratory confirmation screen, dynamic tracking ID, estimated delivery dates, continue shopping CTA |
+| `/order/[orderId]/confirmation` | **Order Success** | ✅ Complete | Celebratory confirmation screen, dynamic tracking ID, transaction ref ID, estimated delivery dates, continue shopping CTA |
 | `/login` | **Authentication Sign-In** | ✅ Complete | Email & password form, JWT token persistence, 1-click VIP Customer & Master Admin demo passport quick-login |
 | `/register` | **Customer Registration** | ✅ Complete | Membership account creation, welcome discount perks, form validation, immediate session creation |
 | `/account` | **Customer Account** | ✅ Complete | Authenticated profile overview, RBAC badge, past orders list, saved delivery addresses, sign out |
